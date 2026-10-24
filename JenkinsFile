@@ -1,0 +1,40 @@
+pipeline {
+    agent any
+    
+    tools {
+        // Mee Jenkins lo configure chesina Maven tool name ikkada ivvandi (default ga 'Maven' ani untundi)
+        maven 'Maven'
+    }
+    
+    stages {
+        stage('Checkout Code') {
+            steps {
+                // GitHub or Local repo nunchi code pull chestundi
+                checkout scm
+            }
+        }
+        
+        stage('Build & Package') {
+            steps {
+                // Maven dwara project clean chesi compile & package chestundi
+                sh 'mvn clean package'
+            }
+        }
+        
+        stage('Archive Artifacts') {
+            steps {
+                // Build aina target JAR file ni save chestundi
+                archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+            }
+        }
+    }
+    
+    post {
+        success {
+            echo '🎉 CI/CD Pipeline executed successfully! Build is ready.'
+        }
+        failure {
+            echo '❌ Pipeline failed. Please check the console output.'
+        }
+    }
+}
