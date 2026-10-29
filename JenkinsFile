@@ -17,7 +17,7 @@ pipeline {
         stage('Build & Package') {
             steps {
                 // Maven dwara project clean chesi compile & package chestundi
-                sh 'mvn clean package'
+                bat 'mvn clean package'
             }
         }
         
