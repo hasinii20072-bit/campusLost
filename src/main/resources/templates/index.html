@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Campus Lost & Found Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; }
+        .header-panel { background: #0056b3; color: white; padding: 20px 0; }
+        .gift-badge { background-color: #ffc107; color: #000; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="header-panel text-center mb-4">
+    <h2>🎓 Campus Lost & Found Portal</h2>
+    <p class="m-0">Privacy-Protected Claim Verification & Dispute System</p>
+</div>
+
+<div class="container">
+    <div class="row">
+        <!-- Left Column: Report Item Form -->
+        <div class="col-md-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">📝 Report Lost/Found Item</div>
+                <div class="card-body">
+                    <form th:action="@{/save}" th:object="${newItem}" method="post">
+                        <div class="mb-2">
+                            <label class="form-label">Item Name</label>
+                            <input type="text" th:field="*{itemName}" class="form-control" required placeholder="e.g. Wallet, AirPods">
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Category</label>
+                            <select th:field="*{category}" class="form-select">
+                                <option value="Electronics">Electronics</option>
+                                <option value="Accessories">Accessories</option>
+                                <option value="Books">Books</option>
+                                <option value="Others">Others</option>
+                            </select>
+                        </div>
+                        <div class="mb-2">
+    <label class="form-label">Your Student ID (Reporter)</label>
+    <input type="text" th:field="*{reporterStudentId}" class="form-control" required placeholder="e.g. S101">
+</div>
+                        <div class="mb-2">
+                            <label class="form-label">Location</label>
+                            <input type="text" th:field="*{location}" class="form-control" required placeholder="e.g. Library, Canteen">
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Description</label>
+                            <textarea th:field="*{description}" class="form-control" rows="2" placeholder="Public description..."></textarea>
+                        </div>
+                        <div class="mb-2">
+    <label class="form-label">Your Contact Number (Phone/Email)</label>
+    <input type="text" th:field="*{contactInfo}" class="form-control" required placeholder="e.g. 9876543210 / email@campus.edu">
+</div>
+                        <div class="mb-2">
+                            <label class="form-label">Report Type</label>
+                            <select th:field="*{itemType}" class="form-select">
+                                <option value="LOST">LOST</option>
+                                <option value="FOUND">FOUND</option>
+                            </select>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input type="checkbox" th:field="*{giftOffered}" class="form-check-input" id="giftCheck">
+                            <label class="form-check-label" for="giftCheck">🎁 Gift Offered for Finder</label>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">Submit Report</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Item Display Table -->
+        <div class="col-md-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-secondary text-white">📋 Recently Reported Items</div>
+                <div class="card-body p-0">
+                    <table class="table table-hover table-striped m-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Item</th>
+                                <th>Category</th>
+                                <th>Location</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Perks</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="item : ${items}">
+                                <td th:text="${item.itemName}"></td>
+                                <td th:text="${item.category}"></td>
+                                <td th:text="${item.location}"></td>
+                                <td>
+                                    <span th:text="${item.itemType}" 
+                                          th:class="${item.itemType == 'LOST' ? 'badge bg-danger' : 'badge bg-success'}"></span>
+                                </td>
+                                <td>
+                                    <span th:text="${item.status}" class="badge bg-secondary"></span>
+                                </td>
+                                <td>
+                                    <span th:if="${item.giftOffered}" class="badge gift-badge">🎁 Gift Offered</span>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="modal" 
+                                            th:data-bs-target="'#claimModal' + ${item.id}">Claim</button>
+                                    <button th:if="${item.itemType == 'LOST'}" class="btn btn-sm btn-outline-success" data-bs-toggle="modal" 
+                                            th:data-bs-target="'#foundModal' + ${item.id}">I Found This</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Verification Desk Table -->
+    <div class="row mt-4 mb-5">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark text-white">🔍 Claim Requests & Verification Desk</div>
+                <div class="card-body p-0">
+                    <table class="table table-bordered table-striped m-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Claim ID</th>
+                                <th>Item ID</th>
+                                <th>Claimer Name</th>
+                                <th>Student ID</th>
+                                <th>Proof / Details</th>
+                                <th>Status</th>
+                                <th>Action / Contact Info</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="claim : ${claims}">
+                                <td th:text="${claim.id}"></td>
+                                <td th:text="${claim.itemId}"></td>
+                                <td th:text="${claim.claimerName}"></td>
+                                <td th:text="${claim.claimerStudentId}"></td>
+                                <td th:text="${claim.proofDescription}"></td>
+                                <td>
+                                    <span th:text="${claim.status}" class="badge bg-warning text-dark"></span>
+                                </td>
+                                <td>
+                                    <!-- Approved: Show Contact Details -->
+                                    <div th:if="${claim.status == 'APPROVED'}" class="text-success fw-bold">
+                                        ✅ Approved!
+                                    </div>
+                                    <div th:if="${claim.status == 'APPROVED'}" class="alert alert-success p-1 m-0">
+    <strong>✅ Approved!</strong><br>
+    📞 Finder Contact: <span class="fw-bold text-dark" th:text="${claim.contactInfo}"></span>
+</div>
+
+                                    <!-- Pending: Show Accept/Reject Buttons -->
+                                    <!-- Pending: Show Verification Form & Accept/Reject Buttons -->
+<div th:if="${claim.status == 'PENDING'}">
+    <!-- Approve Form with Finder ID Verification -->
+    <form th:action="@{/claims/{id}/review(id=${claim.id})}" method="post" class="mb-1">
+        <input type="hidden" name="action" value="APPROVE" />
+        <div class="input-group input-group-sm mb-1">
+            <input type="text" name="reviewerStudentId" class="form-control" placeholder="Enter Finder ID" required />
+            <button type="submit" class="btn btn-success">Approve</button>
+        </div>
+    </form>
+
+    <!-- Reject Form -->
+    <form th:action="@{/claims/{id}/review(id=${claim.id})}" method="post">
+        <input type="hidden" name="action" value="REJECT" />
+        <input type="hidden" name="reviewerStudentId" value="admin" />
+        <button type="submit" class="btn btn-sm btn-danger w-100">Reject</button>
+    </form>
+</div>                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal 1: Claim Form -->
+<div th:each="item : ${items}" class="modal fade" th:id="'claimModal' + ${item.id}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Claim Item: <span th:text="${item.itemName}"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form th:action="@{/claims/submit}" method="post">
+                <div class="modal-body">
+                    <input type="hidden" name="itemId" th:value="${item.id}">
+                    <div class="mb-3">
+                        <label class="form-label">Your Name</label>
+                        <input type="text" name="claimerName" class="form-control" required placeholder="Enter full name">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Student ID</label>
+                        <input type="text" name="claimerStudentId" class="form-control" required placeholder="Enter Student ID">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Proof / Verification Details</label>
+                        <textarea name="proofDescription" class="form-control" rows="3" required placeholder="Describe details..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Submit Claim</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal 2: Found Form -->
+<div th:each="item : ${items}" th:if="${item.itemType == 'LOST'}" class="modal fade" th:id="'foundModal' + ${item.id}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">I Found This Item: <span th:text="${item.itemName}"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form th:action="@{/claims/submit}" method="post">
+                <div class="modal-body">
+                    <input type="hidden" name="itemId" th:value="${item.id}">
+                    <div class="mb-3">
+                        <label class="form-label">Your Name (Finder)</label>
+                        <input type="text" name="claimerName" class="form-control" required placeholder="Enter full name">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Student ID</label>
+                        <input type="text" name="claimerStudentId" class="form-control" required placeholder="Enter Student ID">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Where / How did you find it?</label>
+                        <textarea name="proofDescription" class="form-control" rows="3" required placeholder="Describe details..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-success">Submit Details</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
